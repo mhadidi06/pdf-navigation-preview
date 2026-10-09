@@ -40,17 +40,17 @@ impl RecoveryStore {
         Self { dir: dir.into() }
     }
 
-    /// The platform's per-user data folder: `~/Library/Application Support/PdfCraft/Recovery`
-    /// (macOS), `%LOCALAPPDATA%\PdfCraft\Recovery` (Windows), or
-    /// `$XDG_DATA_HOME/pdfcraft/recovery` / `~/.local/share/pdfcraft/recovery` (others).
+    /// The platform's per-user data folder: `~/Library/Application Support/PDFNavigationPreview/Recovery`
+    /// (macOS), `%LOCALAPPDATA%\PDFNavigationPreview\Recovery` (Windows), or
+    /// `$XDG_DATA_HOME/pdf-navigation-preview/recovery` / `~/.local/share/pdf-navigation-preview/recovery` (others).
     pub fn default_dir() -> Option<PathBuf> {
         let env = |k: &str| std::env::var_os(k).filter(|v| !v.is_empty()).map(PathBuf::from);
         if cfg!(target_os = "macos") {
-            env("HOME").map(|h| h.join("Library/Application Support/PdfCraft/Recovery"))
+            env("HOME").map(|h| h.join("Library/Application Support").join(crate::identity::SETTINGS_DIR).join("Recovery"))
         } else if cfg!(windows) {
-            env("LOCALAPPDATA").map(|d| d.join("PdfCraft").join("Recovery"))
+            env("LOCALAPPDATA").map(|d| d.join(crate::identity::SETTINGS_DIR).join("Recovery"))
         } else {
-            env("XDG_DATA_HOME").or_else(|| env("HOME").map(|h| h.join(".local/share"))).map(|d| d.join("pdfcraft/recovery"))
+            env("XDG_DATA_HOME").or_else(|| env("HOME").map(|h| h.join(".local/share"))).map(|d| d.join("pdf-navigation-preview/recovery"))
         }
     }
 

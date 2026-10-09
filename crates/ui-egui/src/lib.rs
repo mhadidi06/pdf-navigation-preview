@@ -59,6 +59,7 @@ pub mod forms_ui;
 mod home;
 mod icon_data;
 pub mod icons;
+pub mod identity;
 mod pageboxes;
 mod palette;
 mod panels;
@@ -1315,7 +1316,7 @@ impl PdfCraftApp {
 
 impl eframe::App for PdfCraftApp {
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
-        storage.set_string("pdfcraft", self.persist());
+        storage.set_string(identity::STORAGE_KEY, self.persist());
     }
 
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
@@ -1406,7 +1407,7 @@ impl eframe::App for PdfCraftApp {
         let title = self
             .active
             .and_then(|i| self.session.get(self.views[i].id))
-            .map_or_else(|| "PdfCraft".to_owned(), |d| format!("{} — PdfCraft", d.display_name()));
+            .map_or_else(|| identity::NAME.to_owned(), |d| format!("{} — {}", d.display_name(), identity::NAME));
         if title != self.window_title {
             ctx.send_viewport_cmd(egui::ViewportCommand::Title(title.clone()));
             self.window_title = title;

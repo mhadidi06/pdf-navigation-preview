@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <title>PDF Navigation Preview neutral document and navigation icon</title>
+  <rect width="256" height="256" rx="36" fill="#17324d"/>
+  <path d="M76 212V44h70l38 38v130z M146 44v38h38" fill="none" stroke="#ffffff" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M48 142h158 M64 126l-16 16 16 16 M190 126l16 16-16 16" fill="none" stroke="#55dac5" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

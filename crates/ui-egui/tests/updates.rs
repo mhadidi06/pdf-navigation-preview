@@ -50,7 +50,7 @@ fn a_newer_release_is_offered_for_download() {
     let mut h = harness(Ok("v99.0.0"));
     h.state_mut().execute("help.check_updates");
     settle(&mut h);
-    h.get_by_label_contains("PdfCraft 99.0.0 is available");
+    h.get_by_label_contains("PDF Navigation Preview 99.0.0 is available");
     h.get_by_label("Download");
     h.get_by_label("Later").click();
     h.run_steps(3);
@@ -59,7 +59,7 @@ fn a_newer_release_is_offered_for_download() {
 
 #[test]
 fn an_up_to_date_or_failed_check_says_so() {
-    let mut h = harness(Ok(concat!("v", env!("CARGO_PKG_VERSION"))));
+    let mut h = harness(Ok(concat!("v", "0.1.0")));
     h.state_mut().execute("help.check_updates");
     settle(&mut h);
     h.get_by_label_contains("is up to date");
@@ -93,5 +93,5 @@ fn nothing_is_asked_until_the_user_checks() {
     h.state_mut().execute("help.check_updates");
     settle(&mut h);
     assert_eq!(calls.load(std::sync::atomic::Ordering::SeqCst), 1);
-    h.get_by_label_contains("PdfCraft 99.0.0 is available");
+    h.get_by_label_contains("PDF Navigation Preview 99.0.0 is available");
 }

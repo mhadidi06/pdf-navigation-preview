@@ -1890,3 +1890,9 @@
 	XFA form: its fields and its XFA data are kept in step, so other viewers show what you fill in.	XFA 表单：字段与 XFA 数据保持同步，以便其他阅读器显示您填写的内容。
 @plural	{n} page|{n} pages	{n} 页
 @plural	{n} field|{n} fields	{n} 个字段
+	Community contributor	Community contributor
+	Upstream project	Upstream project
+	Upstream source	Upstream source
+	Upstream license	Upstream license
+
+	About PDF Navigation Preview	About PDF Navigation Preview

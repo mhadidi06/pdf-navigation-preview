@@ -676,7 +676,9 @@ mod tests {
             assert!(has(cs, menu), "Czech lacks the menu title {menu:?}");
             assert!(has(cs, spec.label), "Czech lacks the {menu} menu label {:?} ({})", spec.label, spec.id);
         }
-        const KEEP_AS_IS: &[&str] = &["OK"];
+        // Community identity labels intentionally remain English in every catalog.
+        const KEEP_AS_IS: &[&str] =
+            &["OK", "Community contributor", "Upstream project", "Upstream source", "Upstream license", "About PDF Navigation Preview"];
         let (entries, _) = parse_entries(cs.0.source, cs.0.plural_forms());
         for e in &entries {
             assert!(e.source != e.translation || KEEP_AS_IS.contains(&e.source.as_str()), "{:?} is untranslated", e.source);

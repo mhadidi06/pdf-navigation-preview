@@ -1,12 +1,12 @@
-//! Where PdfCraft and the ArtCraft community live on the web. One table, so the Help menu, the
+//! Independent contributor and factual upstream links. One table, so the Help menu, the
 //! About dialog, the home screen, the CLI and the README agree.
 
-/// The app's name in ArtCraft URLs (`getartcraft.com/apps/{APP}`, `github.com/storytold/{APP}`).
+/// The upstream repository name, retained for factual source attribution.
 pub const APP: &str = "pdfcraft";
 
-pub const DISCORD: &str = "https://discord.gg/artcraft";
-pub const WEBSITE: &str = "https://getartcraft.com";
-pub const APP_PAGE: &str = "https://getartcraft.com/apps/pdfcraft";
+pub const DISCORD: &str = "https://github.com/mhadidi06";
+pub const WEBSITE: &str = "https://github.com/storytold/pdfcraft/blob/main/LICENSE-MIT";
+pub const APP_PAGE: &str = "https://github.com/storytold/pdfcraft";
 pub const GITHUB: &str = "https://github.com/storytold/pdfcraft";
 
 /// A link and the registry command that opens it.
@@ -19,12 +19,12 @@ pub struct Link {
     pub icon: &'static str,
 }
 
-/// In the order they are shown. Discord comes first: it is where people get help fastest.
+/// Display order. Legacy command IDs remain stable; their labels and destinations are independent.
 pub const LINKS: &[Link] = &[
-    Link { command: "help.discord", label: "Join the ArtCraft Discord", url: DISCORD, icon: "messages-square" },
-    Link { command: "help.app_page", label: "PdfCraft web page", url: APP_PAGE, icon: "globe" },
-    Link { command: "help.github", label: "PdfCraft on GitHub", url: GITHUB, icon: "code-xml" },
-    Link { command: "help.website", label: "ArtCraft website", url: WEBSITE, icon: "external-link" },
+    Link { command: "help.discord", label: "Community contributor", url: DISCORD, icon: "messages-square" },
+    Link { command: "help.app_page", label: "Upstream project", url: APP_PAGE, icon: "globe" },
+    Link { command: "help.github", label: "Upstream source", url: GITHUB, icon: "code-xml" },
+    Link { command: "help.website", label: "Upstream license", url: WEBSITE, icon: "external-link" },
 ];
 
 pub fn for_command(id: &str) -> Option<&'static Link> {
@@ -142,7 +142,9 @@ pub fn host(url: &str) -> Option<&str> {
 mod tests {
     #[test]
     fn urls_follow_the_artcraft_scheme() {
-        assert_eq!(super::APP_PAGE, format!("{}/apps/{}", super::WEBSITE, super::APP));
+        assert_eq!(super::APP_PAGE, super::GITHUB);
+        assert_eq!(super::DISCORD, "https://github.com/mhadidi06");
+        assert_eq!(super::WEBSITE, "https://github.com/storytold/pdfcraft/blob/main/LICENSE-MIT");
         assert_eq!(super::GITHUB, format!("https://github.com/storytold/{}", super::APP));
         for l in super::LINKS {
             assert!(l.url.starts_with("https://"), "{}", l.url);

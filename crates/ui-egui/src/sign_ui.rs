@@ -621,7 +621,9 @@ fn sign_as(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens) -> bool {
         if in_keychain {
             ui.label("");
             ui.label(
-                egui::RichText::new(tl!("The key is in the macOS Keychain, which may ask to allow PdfCraft to use it.")).small().color(t.text_muted),
+                egui::RichText::new("The key is in the macOS Keychain, which may ask to allow PDF Navigation Preview to use it.")
+                    .small()
+                    .color(t.text_muted),
             );
         } else {
             let l = ui.label(tl!("Digital ID password"));

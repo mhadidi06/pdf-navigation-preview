@@ -2,7 +2,11 @@
 
 use std::time::Duration;
 
-use pdfcraft_ui_egui::updates::{RELEASES_PAGE, Release};
+use pdfcraft_ui_egui::updates::Release;
+
+// This module is compiled only for tests in the community build. Retain the upstream
+// parser fixtures without wiring an official update feed into the distributed application.
+const RELEASES_PAGE: &str = "https://github.com/storytold/pdfcraft/releases";
 
 const LATEST: &str = "https://api.github.com/repos/storytold/pdfcraft/releases/latest";
 

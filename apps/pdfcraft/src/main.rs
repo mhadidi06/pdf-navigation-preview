@@ -22,50 +22,20 @@ use pdfcraft_ui_egui::PdfCraftApp;
 
 #[cfg(target_os = "macos")]
 mod apple_events;
+#[cfg(test)]
 mod updates;
 
 /// Freedesktop app id: the `.desktop` file name and the hicolor icon name.
-const APP_ID: &str = "ai.storyteller.pdfcraft";
+const APP_ID: &str = pdfcraft_ui_egui::identity::APP_ID;
 
-/// The app icon (assets/app-icon/README.md). macOS gets the version on Apple's icon grid, with a
-/// transparent margin; Windows and Linux get the full-bleed tile.
-#[cfg(target_os = "macos")]
-const APP_ICON_PNG: &[u8] = include_bytes!("../../../assets/app-icon/pdfcraft-1024.png");
-#[cfg(not(target_os = "macos"))]
-const APP_ICON_PNG: &[u8] = include_bytes!("../../../assets/app-icon/hicolor/256x256/apps/ai.storyteller.pdfcraft.png");
-
-/// The app was called PrintCraft before; settings saved then are under this key.
-const LEGACY_STORAGE_KEY: &str = "printcraft";
-
-/// Move the settings and crash-recovery folders of the app's former name, PrintCraft, to the new
-/// name once, so an upgrade keeps recent files, preferences and unsaved work. Best effort: a
-/// folder is left alone when the new one already exists or the move fails.
-fn migrate_legacy_folders() {
-    let mut moves = vec![(eframe::storage_dir("PrintCraft"), eframe::storage_dir("PdfCraft"))];
-    // Recovery lives in the settings folder except on Windows, where it is under %LOCALAPPDATA%.
-    if cfg!(windows) {
-        let local = std::env::var_os("LOCALAPPDATA").filter(|v| !v.is_empty()).map(std::path::PathBuf::from);
-        moves.push((local.as_ref().map(|d| d.join("PrintCraft")), local.map(|d| d.join("PdfCraft"))));
-    }
-    for (old, new) in moves {
-        let (Some(old), Some(new)) = (old, new) else { continue };
-        if !old.is_dir() || new.exists() {
-            continue;
-        }
-        if let Some(parent) = new.parent() {
-            let _ = std::fs::create_dir_all(parent);
-        }
-        if let Err(e) = std::fs::rename(&old, &new) {
-            eprintln!("pdfcraft: moving {} to {}: {e}", old.display(), new.display());
-        }
-    }
-}
+/// Original neutral community icon, embedded on every platform.
+const APP_ICON_PNG: &[u8] = include_bytes!("../../../assets/community-icon/navigation-preview.png");
 
 fn main() -> eframe::Result {
     // Last-resort guard (AGENTS.md §4): commands, edits, opens and saves catch panics and report
     // them; this hook logs every panic, caught or not, with a backtrace when RUST_BACKTRACE is set.
     std::panic::set_hook(Box::new(|info| {
-        eprintln!("pdfcraft: internal error: {info}");
+        eprintln!("pdf-navigation-preview: internal error: {info}");
         let trace = std::backtrace::Backtrace::capture();
         if trace.status() == std::backtrace::BacktraceStatus::Captured {
             eprintln!("{trace}");
@@ -79,7 +49,7 @@ fn main() -> eframe::Result {
     while let Some(a) = args.next() {
         match a.as_str() {
             "--version" => {
-                println!("pdfcraft {}", env!("CARGO_PKG_VERSION"));
+                println!("{} {}", pdfcraft_ui_egui::identity::NAME, pdfcraft_ui_egui::identity::VERSION);
                 return Ok(());
             }
             "--control" => control_file = args.next(),
@@ -93,7 +63,7 @@ fn main() -> eframe::Result {
     }
     let integrated = cfg!(target_os = "macos");
     let mut viewport = egui::ViewportBuilder::default()
-        .with_title("PdfCraft")
+        .with_title(pdfcraft_ui_egui::identity::NAME)
         .with_inner_size([1440.0, 920.0])
         .with_min_inner_size([820.0, 520.0])
         .with_drag_and_drop(true)
@@ -102,14 +72,14 @@ fn main() -> eframe::Result {
     // Dock, taskbar, Alt-Tab and launcher icon when running unbundled.
     match eframe::icon_data::from_png_bytes(APP_ICON_PNG) {
         Ok(icon) => viewport = viewport.with_icon(icon),
-        Err(e) => eprintln!("pdfcraft: app icon: {e}"),
+        Err(e) => eprintln!("pdf-navigation-preview: app icon: {e}"),
     }
     if integrated {
         viewport = viewport.with_fullsize_content_view(true).with_titlebar_shown(false).with_title_shown(false);
     }
-    migrate_legacy_folders();
-    // eframe would otherwise derive the settings folder from the app id: keep it under "PdfCraft".
-    let persistence_path = eframe::storage_dir("PdfCraft").map(|d| d.join("app.ron"));
+    // Never migrate or restore upstream settings/recovery data.
+    // eframe would otherwise derive the settings folder from the app id: use the independent preview namespace.
+    let persistence_path = eframe::storage_dir(pdfcraft_ui_egui::identity::SETTINGS_DIR).map(|d| d.join("app.ron"));
     let mut native = eframe::NativeOptions { viewport, persistence_path, ..Default::default() };
     configure_gpu(&mut native);
     // Finder, Open With and the Dock deliver files as Apple events, not arguments; catch the one
@@ -119,15 +89,15 @@ fn main() -> eframe::Result {
     #[cfg(target_os = "macos")]
     let apple_events = &apple_events;
     eframe::run_native(
-        "PdfCraft",
+        pdfcraft_ui_egui::identity::NAME,
         native,
         Box::new(move |cc| {
             let mut app = PdfCraftApp::new();
-            if let Some(json) = cc.storage.and_then(|s| s.get_string("pdfcraft").or_else(|| s.get_string(LEGACY_STORAGE_KEY))) {
+            if let Some(json) = cc.storage.and_then(|s| s.get_string(pdfcraft_ui_egui::identity::STORAGE_KEY)) {
                 app.restore(&json);
             }
             app.integrated_titlebar = integrated;
-            app.update_source = Some(std::sync::Arc::new(updates::latest_release));
+            // Community releases do not query the upstream update feed.
             app.keychain_ids = cfg!(target_os = "macos");
             #[cfg(target_os = "macos")]
             {
@@ -136,8 +106,8 @@ fn main() -> eframe::Result {
             if let Some(file) = &control_file {
                 let client = app.attach_control(&cc.egui_ctx);
                 match pdfcraft_ui_egui::control::serve(client).and_then(|ep| write_control_file(file, ep.port, &ep.token).map(|()| ep.port)) {
-                    Ok(port) => eprintln!("pdfcraft: UI control channel on 127.0.0.1:{port} (connection details in {file})"),
-                    Err(e) => eprintln!("pdfcraft: --control {file}: {e}"),
+                    Ok(port) => eprintln!("pdf-navigation-preview: UI control channel on 127.0.0.1:{port} (connection details in {file})"),
+                    Err(e) => eprintln!("pdf-navigation-preview: --control {file}: {e}"),
                 }
             }
             // Autosave unsaved changes; offer to recover documents a crashed session left behind.
@@ -155,7 +125,7 @@ fn main() -> eframe::Result {
             }
             for (k, v) in options {
                 if let Err(e) = app.set_option(&k, &v) {
-                    eprintln!("pdfcraft: --{k} {v}: {e}");
+                    eprintln!("pdf-navigation-preview: --{k} {v}: {e}");
                 }
             }
             Ok(Box::new(app))
@@ -347,5 +317,22 @@ mod tests {
         assert_eq!(gpus, vec![NVIDIA]);
         assert!(super::linux_display_gpus(std::path::Path::new("/nonexistent/drm")).is_empty());
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod community_identity_tests {
+    #[test]
+    fn independent_settings_and_recovery_never_share_the_upstream_namespace() {
+        use pdfcraft_ui_egui::identity;
+        assert_ne!(identity::APP_ID, "ai.storyteller.pdfcraft");
+        assert_ne!(identity::STORAGE_KEY, "pdfcraft");
+        assert_ne!(identity::STORAGE_KEY, "printcraft");
+        assert_ne!(eframe::storage_dir(identity::SETTINGS_DIR), eframe::storage_dir("PdfCraft"));
+        if let Some(dir) = pdfcraft_ui_egui::RecoveryStore::default_dir() {
+            assert!(dir.to_string_lossy().contains(identity::SETTINGS_DIR));
+            assert!(!dir.to_string_lossy().contains("\\PdfCraft\\"));
+        }
+        assert!(eframe::icon_data::from_png_bytes(super::APP_ICON_PNG).is_ok());
     }
 }

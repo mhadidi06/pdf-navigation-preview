@@ -227,3 +227,10 @@ Newest first. One line per session: the date, what moved, and the new overall pe
   - Overall ≈ 3–4%.
 - **2026-09-30 (session 1):** planning complete; viewer vertical slice.
 
+
+Local community preparation (2026-10-09): this branch is independently branded PDF Navigation
+Preview, with a neutral contributor-original icon and separate Windows identity/settings/recovery.
+Contribution branch contribution/navigation retains the original identity and the shared navigation
+implementation/tests. Its full Windows suite passes (928 passed, 4 ignored) after fixing initial
+zoom before the viewport exists. Community validation passes formatting, Cargo check, workspace Clippy and 929 Windows tests (4 ignored). The static-CRT Windows x64 Release build starts and renders a synthetic four-page PDF. Physical mouse validation remains pending because the Windows desktop is locked; portable packaging checks follow separately. No release
+or pull request has been published. Build output remains on C:/PrintCraft-Target.
